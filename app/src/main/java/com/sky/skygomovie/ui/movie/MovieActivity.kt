@@ -25,14 +25,18 @@ class MovieActivity : AppCompatActivity() {
         binding = ActivityMovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
         movieAdapter = MovieAdapter()
-
         //setup action bar
-
-        //add search
-
         //add observer
         observeMovieData()
+        swipeRefresh()
 
+    }
+
+    private fun swipeRefresh() {
+        binding.container.setOnRefreshListener {
+            binding.container.isRefreshing = false
+            movieViewModel.getMovies()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

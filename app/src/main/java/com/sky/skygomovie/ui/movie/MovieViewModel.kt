@@ -23,7 +23,7 @@ class MovieViewModel @Inject constructor(private val movieRepository: MovieRepos
         getMovies()
     }
 
-    private fun getMovies() = viewModelScope.launch {
+     fun getMovies() = viewModelScope.launch {
         try {
             _resMovie.value = Resource.Loading(true)
             movieRepository.getMovie().let {
