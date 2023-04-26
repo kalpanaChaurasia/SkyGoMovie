@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
+import com.sky.skygomovie.R
 import com.sky.skygomovie.data.Movies
 import com.sky.skygomovie.databinding.ActivityMovieBinding
 import com.sky.skygomovie.ui.movie.MovieViewModel.Resource
@@ -46,7 +47,10 @@ class MovieActivity : AppCompatActivity() {
         data?.let {
             movieAdapter = MovieAdapter(it)
             binding.rvMovies.apply {
-                layoutManager = GridLayoutManager(applicationContext, 2)
+                layoutManager = GridLayoutManager(
+                    applicationContext,
+                    resources.getInteger(R.integer.grid_column)
+                )
                 adapter = movieAdapter
             }
         }
