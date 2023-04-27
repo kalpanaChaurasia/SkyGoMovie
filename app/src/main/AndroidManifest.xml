@@ -4,6 +4,7 @@
     package="com.sky.skygomovie" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +16,7 @@
         android:supportsRtl="true"
         android:name=".di.SkyApplication"
         android:theme="@style/Theme.SkyGoMovie"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31" >
 
         <activity

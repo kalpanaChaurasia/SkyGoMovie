@@ -1,12 +1,17 @@
 package com.sky.skygomovie.ui.movie
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sky.skygomovie.api.ApiHelper
+import com.sky.skygomovie.api.ApiService
 import com.sky.skygomovie.data.Movies
 import com.sky.skygomovie.repository.MovieRepository
+import com.sky.skygomovie.ui.model.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -14,35 +19,22 @@ import javax.inject.Inject
 class MovieViewModel @Inject constructor(private val movieRepository: MovieRepository) :
     ViewModel() {
 
-    private val _resMovie = MutableLiveData<Resource<Movies>>()
+    private val _resMovie = MutableStateFlow<Resource<Movies>>(Resource.Loading())
+    val resMovie: StateFlow<Resource<Movies>> =  _resMovie
 
-    val resMovie: LiveData<Resource<Movies>>
-        get() = _resMovie
+//    init {
+//        getMovies()
+//    }
 
-    init {
-        getMovies()
-    }
-
-     fun getMovies() = viewModelScope.launch {
-        try {
-            _resMovie.value = Resource.Loading(true)
-            movieRepository.getMovie().let {
-                _resMovie.value = Resource.Loading(false)
-                if (it.isSuccessful) {
-                    _resMovie.value = Resource.Success(it.body())
-                } else {
-                    _resMovie.value = Resource.Error(it.errorBody().toString())
-                }
+    fun getMovies() = viewModelScope.launch {
+        movieRepository.getMovies()
+            .catch { exception ->
+                _resMovie.value = Resource.Error(exception.message!!)
             }
-        } catch (e: Exception) {
-            _resMovie.value = Resource.Loading(false)
-            _resMovie.value = Resource.Error(e.message.toString())
-        }
+            .collect {
+                _resMovie.value = Resource.Success(it)
+            }
     }
 
-    sealed class Resource<T> {
-        data class Loading<T>(val isLoading: Boolean) : Resource<T>()
-        data class Success<T>(val data: Movies?) : Resource<T>()
-        data class Error<T>(val error: String) : Resource<T>()
-    }
+
 }

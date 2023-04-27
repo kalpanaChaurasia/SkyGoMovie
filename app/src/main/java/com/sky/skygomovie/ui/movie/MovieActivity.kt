@@ -3,14 +3,17 @@ package com.sky.skygomovie.ui.movie
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sky.skygomovie.R
 import com.sky.skygomovie.data.Movies
 import com.sky.skygomovie.databinding.ActivityMovieBinding
-import com.sky.skygomovie.ui.movie.MovieViewModel.Resource
+import com.sky.skygomovie.ui.model.Resource
+import com.sky.skygomovie.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -24,10 +27,21 @@ class MovieActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (!Utils.isOnline(this)) {
+            Toast.makeText(
+                this,
+                resources.getString(R.string.network_error),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         movieAdapter = MovieAdapter()
         //setup action bar
         //add observer
         observeMovieData()
+        movieViewModel.getMovies()
         swipeRefresh()
 
     }
@@ -61,11 +75,27 @@ class MovieActivity : AppCompatActivity() {
     }
 
     private fun observeMovieData() {
-        movieViewModel.resMovie.observe(this) {
-            when (it) {
-                is Resource.Loading -> handleLoadingState(it.isLoading)
-                is Resource.Success -> handleSuccessState(it.data)
-                is Resource.Error -> handleErrorState(it.error)
+//        movieViewModel.resMovie.observe(this) {
+//            when (it) {
+//                is Resource.Loading -> handleLoadingState(it.isLoading)
+//                is Resource.Success -> handleSuccessState(it.data)
+//                is Resource.Error -> handleErrorState(it.error)
+//            }
+//        }
+
+        lifecycleScope.launchWhenCreated {
+            movieViewModel.resMovie.collect { state ->
+                when (state) {
+                    is Resource.Loading -> showLoading()
+                    is Resource.Success -> {
+                        hideLoading()
+                        handleSuccessState(state.data)
+                    }
+                    is Resource.Error -> {
+                        hideLoading()
+                        handleErrorState(state.error!!)
+                    }
+                }
             }
         }
     }
@@ -87,14 +117,11 @@ class MovieActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleLoadingState(loading: Boolean) {
-        if (loading) {
-            //display progress
-        } else {
-            //hide it
-        }
+    private fun showLoading() {
+    }
 
 
+    private fun hideLoading() {
     }
 
 
